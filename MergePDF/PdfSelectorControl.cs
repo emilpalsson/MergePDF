@@ -6,7 +6,12 @@ namespace MergePDF
     public partial class PdfSelectorControl : UserControl
     {
         private OpenFileDialog openFileDialog;
-        public string FileName { get; private set; }
+        public string FileName
+        {
+            get => textBox.Text;
+            set => textBox.Text = value;
+        }
+
         public int Index { get; }
 
         TextBox textBox;
@@ -30,6 +35,62 @@ namespace MergePDF
 
             Controls.Add(textBox);
             Controls.Add(CreateOpenButton());
+            Controls.Add(CreateMoveUpButton());
+            Controls.Add(CreateMoveDownButton());
+        }
+
+        private Button CreateMoveUpButton()
+        {
+            Button button = new Button
+            {
+                Location = new Point(490, 0),
+                Size = new Size(20, 20),
+                Text = "▲",
+                Visible = true
+            };
+
+            button.Click += (sender, e) =>
+            {
+                if (this.Index == 1)
+                {
+                    MessageBox.Show("This is already the first file.", "Unable to move", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                var prev = (PdfSelectorControl)this.Parent.Controls[this.Index - 2];
+                var prevFileName = prev.FileName;
+                prev.FileName = FileName;
+                FileName = prevFileName;
+
+            };
+
+            return button;
+        }
+
+        private Button CreateMoveDownButton()
+        {
+            Button button = new Button
+            {
+                Location = new Point(510, 0),
+                Size = new Size(20, 20),
+                Text = "▼",
+                Visible = true
+            };
+
+            button.Click += (sender, e) =>
+            {
+                var next = this.Parent.Controls[this.Index] as PdfSelectorControl;
+                if (next == null)
+                {
+                    MessageBox.Show("This is already the last file.", "Unable to move", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                var nextFilename = next.FileName;
+                next.FileName = FileName;
+                FileName = nextFilename;
+
+            };
+
+            return button;
         }
 
         private void CreateTextbox()
@@ -37,7 +98,7 @@ namespace MergePDF
             textBox = new TextBox
             {
                 Location = new Point(126, 0),
-                Size = new Size(400, 20),
+                Size = new Size(350, 20),
                 Visible = true,
                 ReadOnly = true
             };
@@ -59,9 +120,7 @@ namespace MergePDF
                 {
                     try
                     {
-                        string fileName = dialog.FileName;
-                        textBox.Text = fileName;
-                        FileName = fileName;
+                        FileName = dialog.FileName;
                     }
                     catch (System.IO.IOException)
                     {
